@@ -1,0 +1,55 @@
+quale di questi reperti è più antico ? kneeling_statue_of_amenhotep_ii 1300 / granite_head_of_amenemhat_iii 1800 / nefertiti_head 1300
+
+quale struttura non è di epoca greca ? temple of friendship / griechischer_tempel / temple_ruin_aquarium_decoration_-_photoscan
+
+quale scarpa è più comoda ? nike_air_zoom_pegasus_36 / unused_blue_vans_shoe / photocatch_shoe
+
+quale scarpa è più adatta ad una passeggiata in montagna? scanned_adidas_sports_shoe / winter_shoe / Seen_low_2K
+
+quale pianta scelgi per il tuo balcone ?
+
+quale/ questa va bene al freddo/caldo ?
+
+quale cartello è migliore per un ristorante asiatico ?
+
+quale di questi oggetti non proviene dalla realtà ? (gameboy)
+
+a cosa serve questo ogg? (elettronica)
+
+quale tazza è più adatta a un regalo
+
+quale di questi trofei va bene per una premiazione cinema ?
+
+quale di questi vasi non è cinese ?
+
+quale macchina è più veloce?
+
+questo edificio è preso dalla realtà?
+
+questa statua nera dA dove viene?
+
+cosa allena questo macchinario?
+
+
+
+{ title: "DOMANDA 1", text: "Quale di questi reperti è più antico ?"},
+   s { title: "DOMANDA 2", text: "Quale struttura non è di epoca greca ?"},
+   s { title: "DOMANDA 3", text: "Quale scarpa ti sembra più comoda ?" },
+   s { title: "DOMANDA 4", text: "Quale scarpa è meno scivolosa?" },
+   s { title: "DOMANDA 5", text: "Quale pianta scegli per il tuo balcone?" },
+   s { title: "DOMANDA 6", text: "In che clima preferisce stare questa pianta?", mode:true, mesh: () => loadMeshWithTrackballControls('modelli/piante/aloe_vera_plant.glb', 'Pianta_aloe') },
+   s { title: "DOMANDA 7", text: "Quale cartello è migliore per un ristorante asiatico?" },
+   s { title: "DOMANDA 8", text: "Quale di questi oggetti non proviene dalla realtà?" },
+   s { title: "DOMANDA 9", text: "A cosa serve questo oggetto?" },
+   s { title: "DOMANDA 10", text: "Quale tazza è più adatta a un regalo?" },
+   s { title: "DOMANDA 11", text: "Quale di questi trofei va bene per una premiazione cinematografica ?" },
+   s { title: "DOMANDA 12", text: "Quale di questi vasi non è cinese ?" },
+   s { title: "DOMANDA 13", text: "Quale macchina è più veloce?" },
+   s { title: "DOMANDA 14", text: "Questo edificio è reale o modellato al computer?" },
+   s { title: "DOMANDA 15", text: "Da dove proviene questa statua?" },
+   s { title: "DOMANDA 16", text: "Cosa allena questo macchinario?" },
+   s { title: "DOMANDA 17", text: "Quale macchina è più economica?" }
+];
+
+
+

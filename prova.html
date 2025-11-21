@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controllo Fotocamera - Amenemhat III</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        #info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">POV: Caricamento...</div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
+
+    <script>
+        var scene = new THREE.Scene();
+        var camera, cameraDirection, cameraUp;
+        var renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        var ambientLight = new THREE.AmbientLight(0x404040,2);
+        scene.add(ambientLight);
+
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        function loadModel(meshName) {
+            if (model) scene.remove(model);
+            loader.load('modelli/statue/' + meshName, function (gltf) {
+                model = gltf.scene;
+                scene.add(model);
+            });
+        }
+
+        var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 10, 5);
+        scene.add(directionalLight);
+
+        var pointLight = new THREE.PointLight(0xffffff, 1, 2);
+        pointLight.position.set(10, 10, 10);
+        scene.add(pointLight);
+
+        var loader = new THREE.GLTFLoader();
+        var model;
+
+
+        var dbRow = `"9bc9c26b-c6e0-41b2-b09c-8e9956278cfa"	"41-65"	"never"	"cupola.glb"	0.6724340363233352	3.402952969607526	13.80995638230709	-0.11259138607154676	0.07893280308109316	-0.9905012833814245	0.051690185023430736	0.9959553637160377	0.07349175639143746	75`;
+
+    function parseDbRow(rowString) {
+        const parts = rowString.split('\t').map(s => s.replace(/"/g, ''));
+
+        if (parts.length < 14) {
+            console.error("La riga non contiene abbastanza elementi.");
+            return;
+        }
+
+        const meshName = parts[3];
+        const pos = {
+            x: parseFloat(parts[4]),
+            y: parseFloat(parts[5]),
+            z: parseFloat(parts[6])
+        };
+        cameraDirection = new THREE.Vector3(
+            parseFloat(parts[7]),
+            parseFloat(parts[8]),
+            parseFloat(parts[9])
+        );
+        cameraUp = new THREE.Vector3(
+            parseFloat(parts[10]),
+            parseFloat(parts[11]),
+            parseFloat(parts[12])
+        );
+        const fov = parseFloat(parts[13]);
+
+        loadModel(meshName);
+        updateCamera(pos, cameraDirection, cameraUp, fov);
+    }
+
+
+  
+    // esegui appena pronto
+    parseDbRow(dbRow);
+        
+        
+
+    function updateCamera(pos, dir, up, fov) {
+    const positionVec = new THREE.Vector3(pos.x, pos.y, pos.z);
+    camera.position.copy(positionVec);
+    camera.up.copy(up);
+    camera.lookAt(positionVec.clone().add(dir));
+    camera.fov = fov;
+    camera.updateProjectionMatrix();
+}
+
+        var infoDiv = document.getElementById('info');
+
+        function updatePOVInfo() {
+            infoDiv.innerHTML = `
+                <b>POV:</b><br>
+                Posizione: (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)})<br>
+                Direzione: (${cameraDirection.x.toFixed(2)}, ${cameraDirection.y.toFixed(2)}, ${cameraDirection.z.toFixed(2)})<br>
+                UpVector: (${cameraUp.x.toFixed(2)}, ${cameraUp.y.toFixed(2)}, ${cameraUp.z.toFixed(2)})<br>
+                FOV: ${camera.fov.toFixed(2)}
+            `;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            updatePOVInfo();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        window.addEventListener('resize', function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        
+    </script>
+</body>
+
+</html>

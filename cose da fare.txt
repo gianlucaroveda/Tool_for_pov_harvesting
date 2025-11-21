@@ -1,0 +1,69 @@
+mettere a posto il salvataggio db e normalizzazione V
+
+inserire nuova tipologia di domanda V 
+
+fare un foglio condiviso V
+
+modificare interazione e rendere più ovvio V
+
+bottone avanti e progressione nel questionario controllata V
+
+abilita e disabilita il monitor della camera. V
+
+aggiusta povdata perché non è visibile in question. V
+
+disabilita quando la mesh è offuscata. V
+
+introduzione = no limite tempo ne punteggio.
+
+traduci bottone avanti, pagina tutoria V
+
+completa tutorial. V
+
+pensare delle domande V
+---------------------
+
+mostrare interfaccia nel paper V
+
+spiegare UI V
+
+controlla i titoli V
+
+creare un ppt per la presentazione
+
+aggiusta bib
+
+immagini chiare 
+
+foto delle 3 tipologie di domande V
+
+
+
+
+------
+
+
+
+--------------
+
+presentazione metti apposto immagine db
+
+presentazione dividi oggetto da domande
+
+tesi paper correggi
+
+ctrl+c per vedere i dati
+
+
+
+
+
+
+
+
+
+
+
+
+
+

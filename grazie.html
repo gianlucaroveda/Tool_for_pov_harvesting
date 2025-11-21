@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grazie</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
+            color: white;
+            flex-direction: column;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        h1 {
+            font-size: 2em;
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: red;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: darkred;
+        }
+        #sessionIdDisplay {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Thanks for your time</h1>
+    <p>now you can close the session</p>
+    <div id="sessionIdDisplay">Session ID: (non trovato)</div>
+</body>
+ <script>
+    const sessionId = sessionStorage.getItem('sessionId');
+    const displayDiv = document.getElementById('sessionIdDisplay');
+
+    if (sessionId) {
+      displayDiv.textContent = 'Session ID: ' + sessionId;
+    } else {
+      displayDiv.textContent = 'Session ID non trovato in sessionStorage.';
+    }
+  </script>
+</html>

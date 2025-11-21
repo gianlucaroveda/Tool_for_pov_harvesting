@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizzatore Mesh 3D</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/PLYLoader.js"></script>
+
+    <style>
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; }
+        #info { position: absolute; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="info">
+        POV: <span id="pov"></span><br>
+        POV Vector: <span id="povVector"></span><br>
+    </div>
+    <div id="rotationControls" style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; color: white;">
+        
+    </div>
+    <script>
+        // Creazione scena, camera e renderer
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Controlli Orbit
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        //controls.enableDamping = false;
+
+        // Aggiunta di una luce
+        const light = new THREE.AmbientLight(0xffffff, 7);
+        scene.add(light);
+
+       // GLB
+      /*  const loader = new THREE.GLTFLoader();
+        loader.load('modelli/tastiera/Logitech Keyboard.glb', function(gltf) {
+            scene.add(gltf.scene);
+        }, undefined, function(error) {
+            console.error('Errore nel caricamento della mesh:', error);
+        });
+
+   */
+//MESH PLY
+/*
+const loader = new THREE.PLYLoader();
+loader.load('3DHOP_4.3/examples/models/gargo.ply', function(geometry) {
+    geometry.computeVertexNormals(); // Calcola normali per la luce
+
+    const material = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: false });
+    const mesh = new THREE.Mesh(geometry, material);
+
+    scene.add(mesh);
+}, undefined, function(error) {
+    console.error('Errore nel caricamento della mesh:', error);
+});
+*/
+
+
+
+    //punti 
+    const loader = new THREE.PLYLoader();
+    loader.load('3DHOP_4.3/examples/models/gargo.ply', function(geometry) {
+        const material = new THREE.PointsMaterial({ color: 0xffffff, size: 0.02 });
+        const points = new THREE.Points(geometry, material);
+    
+        scene.add(points);
+        createRotationSliders(points);
+        
+    }, undefined, function(error) {
+        console.error('Errore nel caricamento della mesh:', error);
+    });
+
+    const axesHelper = new THREE.AxesHelper(70); // Il numero indica la lunghezza degli assi
+    scene.add(axesHelper);
+
+
+
+
+        // Posizionamento della camera
+        camera.position.set(2, 2, 5);
+
+        function createRotationSliders(object) {
+            // Creazione del contenitore per gli slider
+            const controlsDiv = document.createElement('div');
+            controlsDiv.id = 'rotationControls';
+            controlsDiv.style.position = 'absolute';
+            controlsDiv.style.bottom = '10px';
+            controlsDiv.style.left = '10px';
+            controlsDiv.style.background = 'rgba(0,0,0,0.5)';
+            controlsDiv.style.padding = '10px';
+            controlsDiv.style.borderRadius = '5px';
+            controlsDiv.style.color = 'white';
+        
+            document.body.appendChild(controlsDiv);
+
+            // Titolo comandi
+            const title = document.createElement('div');
+            title.innerText = 'Comandi:';
+            title.style.fontWeight = 'bold';
+            title.style.marginBottom = '5px';
+            controlsDiv.appendChild(title);
+
+            // Descrizione comandi
+            const moveCameraText = document.createElement('div');
+            moveCameraText.innerText = '• Tasto sinistro: muovi telecamera';
+            controlsDiv.appendChild(moveCameraText);
+
+            const moveObjectText = document.createElement('div');
+            moveObjectText.innerText = '• Tasto destro: sposta oggetto';
+            controlsDiv.appendChild(moveObjectText);
+
+            const moveZoomtText = document.createElement('div');
+            moveZoomtText.innerText = '• Rotella mouse: Zoom in/out';
+            controlsDiv.appendChild(moveZoomtText);
+
+            controlsDiv.appendChild(document.createElement('hr')); // Separatore
+
+            const axisColors = {
+                X: 'red',
+                Y: 'green',
+                Z: 'blue'
+            };
+        
+            ['X', 'Y', 'Z'].forEach(axis => {
+                // Creazione dell'etichetta
+                const label = document.createElement('label');
+
+                 // Creazione di un elemento span per colorare solo la lettera dell'asse
+                const axisLetter = document.createElement('span');
+                axisLetter.innerText = axis;
+                axisLetter.style.color = axisColors[axis];
+                axisLetter.style.fontWeight = 'bold';
+
+                 // Impostazione del testo con l'elemento colorato
+                label.appendChild(document.createTextNode('Rotazione oggetto asse '));
+                label.appendChild(axisLetter); // Aggiunge la lettera colorata
+                label.appendChild(document.createTextNode(': ')); // Aggiunge i due punti
+        
+                // Creazione dello slider
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = -180;
+                slider.max = 180;
+                slider.value = 0;
+                slider.id = `slider-${axis.toLowerCase()}`;
+                slider.style.width = '100px';
+        
+                // Evento per aggiornare la rotazione
+                slider.addEventListener('input', () => {
+                    object.rotation[axis.toLowerCase()] = THREE.MathUtils.degToRad(slider.value);
+                });
+                
+                // Aggiunta degli elementi al contenitore
+                controlsDiv.appendChild(label);
+                controlsDiv.appendChild(slider);
+                controlsDiv.appendChild(document.createElement('br'));
+                });
+                const resetButton = document.createElement('button');
+                resetButton.innerText = 'Resetta Rotazione';
+                resetButton.style.marginTop = '10px';
+                resetButton.addEventListener('click', () => resetSliders(object));
+
+                controlsDiv.appendChild(resetButton);
+
+            
+        }
+        function resetSliders(object) {
+            ['x', 'y', 'z'].forEach(axis => {
+                const slider = document.getElementById(`slider-${axis}`);
+                if (slider) {
+                    slider.value = 0;
+                    slider.dispatchEvent(new Event('input')); // Triggera l'evento per aggiornare la rotazione
+                }
+            });
+        }
+        
+        
+        // Funzione di aggiornamento
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+            
+            // Aggiorna la posizione della camera
+            const povVector = camera.getWorldDirection(new THREE.Vector3());
+            document.getElementById('pov').innerText = `X: ${camera.position.x.toFixed(2)}, Y: ${camera.position.y.toFixed(2)}, Z: ${camera.position.z.toFixed(2)}`;
+            document.getElementById('povVector').innerText = `X: ${povVector.x.toFixed(2)}, Y: ${povVector.y.toFixed(2)}, Z: ${povVector.z.toFixed(2)}`;
+        }
+        animate();
+
+        // Gestione del ridimensionamento della finestra
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        
+    </script>
+</body>
+</html>

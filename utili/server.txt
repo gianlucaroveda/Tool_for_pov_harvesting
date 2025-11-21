@@ -1,0 +1,8 @@
+cd "C:/Users/Mio_PC/Documents/università"
+
+cd C:\Users\gianl\OneDrive\Documents\università
+
+python -m http.server 8000
+python server.py
+
+http://localhost:8000/esempio%20pianta.html

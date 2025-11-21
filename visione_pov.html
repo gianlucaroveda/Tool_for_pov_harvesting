@@ -1,0 +1,280 @@
+ <!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizzatore Mesh 3D</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/PLYLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/TrackballControls.js"></script>
+    <link rel="stylesheet" href="styles1.css">
+</head>
+<body>
+    
+</body>
+ 
+    <script>
+
+let punti= false; // Variabile se true disegna i punti di POV, false frustum delle camere
+
+ const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xffffff);
+        
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    
+
+         function updateRendererSize() {
+
+        
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+        
+           
+
+        
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+           
+        }
+        window.addEventListener('resize', updateRendererSize);
+
+        
+updateRendererSize();
+
+
+ const light = new THREE.AmbientLight(0xffffaa, 1);
+        scene.add(light);
+
+        const loader = new THREE.GLTFLoader();
+
+
+        function fitMeshToView(mesh) {
+    const box = new THREE.Box3().setFromObject(mesh);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+
+    // Centra la mesh nella scena
+    mesh.position.sub(center);
+
+    // Scala la mesh per adattarsi alla vista
+    const maxSize = Math.max(size.x, size.y, size.z);
+    if (maxSize > 0) {
+        const scaleFactor = 2 / maxSize; // Scala la mesh a un'unità visibile
+        mesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
+    }
+
+    // Posiziona la camera per una visualizzazione ottimale
+    camera.position.set(0, size.y, size.z * 2.5);
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+}
+
+//reset camera
+function resetCamera() {
+    camera.position.set(0, 0, 2);
+    camera.up.set(0, 1, 0); // Reimposta l'upVector della camera
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+    controls.target.set(0, 0, 0);
+    controls.update();
+        
+    if (currentMesh) {
+        currentMesh.rotation.set(0, 0, 0); // Reset della rotazione dell'oggetto
+        currentMesh.updateMatrixWorld(true); // Assicura che la trasformazione sia applicata
+    }
+}
+renderer.domElement.addEventListener("dblclick", resetCamera);
+
+function initControls() {
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = false;
+        
+        controls.enableZoom = true;
+        controls.enableRotate = true;
+        controls.enablePan = true;
+        
+        controls.rotateSpeed = 0.5; 
+        usingOrbitControls = true;
+}
+
+initControls();
+
+
+const meshName = 'kui_xing_god_of_literature_16th_c_ce.glb'; 
+loadMeshWithOrbitControls('modelli/statue/kui_xing_god_of_literature_16th_c_ce.glb');
+
+
+function loadMeshWithOrbitControls(url, light = true,rinf =3.2,lig_inte = 1) {
+    
+    // Aggiunta luci in base al valore del parametro "light"
+    if (light) {
+        const lights = [
+            new THREE.DirectionalLight(0xfffffc,lig_inte), // Destra (+X)
+            new THREE.DirectionalLight(0xfffffc,lig_inte), // Sinistra (-X)
+            new THREE.DirectionalLight(0xfffffc,lig_inte), // Alto (+Y)
+            new THREE.DirectionalLight(0xfffffc,lig_inte), // Basso (-Y)
+            new THREE.DirectionalLight(0xfffffc,lig_inte), // Davanti (+Z)
+            new THREE.DirectionalLight(0xfffffc,lig_inte), // Dietro (-Z)
+           
+        ];
+
+        const pos_luce = 12;
+      
+
+        lights[0].position.set(pos_luce, 0, 0);   // Destra
+        lights[1].position.set(-pos_luce, 0, 0);  // Sinistra
+        lights[2].position.set(0, pos_luce, 0);   // Alto
+        lights[3].position.set(0, -pos_luce, 0);  // Basso
+        lights[4].position.set(0, 0, pos_luce);   // Davanti
+        lights[5].position.set(0, 0, -pos_luce);  // Dietro
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, rinf); // Luce ambientale base
+        scene.add(ambientLight);
+
+        lights.forEach(light => {
+            light.lookAt(0, 0, 0);
+            scene.add(light);
+        });
+    }
+    
+       camera.position.set(0, 0, 2);
+       controls.target.set(0, 0, 0);
+       camera.up.set(0, 1, 0);
+       controls.update();
+
+       loader.load(url, function (gltf) {
+            currentMesh = gltf.scene;
+            currentMeshName = name;
+            normalizeMesh(currentMesh, scene);
+
+        }, undefined, function (error) {
+            console.error('Errore nel caricamento della mesh:', error);
+        });
+    }
+
+
+    function normalizeMesh(inputMesh, scene, raggio= 1) {
+
+    const boundingBox = new THREE.Box3().setFromObject(inputMesh);
+    const boundingSphere = boundingBox.getBoundingSphere(new THREE.Sphere());
+
+  
+    originalBoundingSphereCenter = boundingSphere.center.clone();
+    originalBoundingSphereRadius = boundingSphere.radius;
+
+    const scaleFactor = raggio / originalBoundingSphereRadius;
+    const scaleMatrix = new THREE.Matrix4().makeScale(scaleFactor, scaleFactor, scaleFactor);
+
+    const translationVector = originalBoundingSphereCenter.clone().negate();
+    const translationMatrix = new THREE.Matrix4().makeTranslation(
+        translationVector.x,
+        translationVector.y,
+        translationVector.z
+    );
+
+    inputMesh.applyMatrix4(translationMatrix);
+    inputMesh.applyMatrix4(scaleMatrix);
+
+
+    scene.add(inputMesh);
+}
+
+fetch(`http://127.0.0.1:5000/get_pov_data?mesh_name=${encodeURIComponent(meshName)}`)
+  .then(response => response.json())
+  .then(data => {
+    console.log("POV data ricevuti:", data);
+    if(punti){
+       drawCamerasFromPOVData(data, scene); // Chiama la funzione con la scena corrente
+    } else {
+      drawFrustumCamerasFromPOVData(data, scene); // Chiama la funzione con la scena corrente
+    }
+  })
+  .catch(error => {
+    console.error("Errore nel recupero POV data:", error);
+  });
+
+
+
+function drawCamerasFromPOVData(povDataArray, scene) {
+  povDataArray.forEach(entry => {
+    const { pov, dir, up } = entry;
+
+    // Punto rosso per rappresentare il POV
+    const povDot = new THREE.Mesh(
+      new THREE.SphereGeometry(0.01),
+      new THREE.MeshBasicMaterial({ color: 0xff0000 })
+    );
+    povDot.position.set(pov.x, pov.y, pov.z);
+    scene.add(povDot);
+
+   
+    const dirVec = new THREE.Vector3(dir.x, dir.y, dir.z).normalize();
+    const dirArrow = new THREE.ArrowHelper(
+      dirVec, // direzione normalizzata
+      new THREE.Vector3(pov.x, pov.y, pov.z), // punto di origine
+      0.1, // lunghezza della freccia
+      0x00ff00 
+    );
+    scene.add(dirArrow);
+
+    
+    const upVec = new THREE.Vector3(up.x, up.y, up.z).normalize();
+    const upArrow = new THREE.ArrowHelper(
+      upVec,
+      new THREE.Vector3(pov.x, pov.y, pov.z),
+      0.07,
+      0x0000ff 
+    );
+    scene.add(upArrow);
+  });
+
+}
+
+function drawFrustumCamerasFromPOVData(povDataArray, scene) {
+  povDataArray.forEach(entry => {
+    const { pov, dir, up } = entry;
+
+    const fov = 75;
+    const aspect = 1.7;
+    const near = 0.01; 
+    const far = 0.1;
+
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+    camera.position.set(pov.x, pov.y, pov.z);
+
+    const dirVec = new THREE.Vector3(dir.x, dir.y, dir.z).normalize();
+    const target = new THREE.Vector3().addVectors(camera.position, dirVec);
+
+    const upVec = new THREE.Vector3(up.x, up.y, up.z).normalize();
+    camera.up.copy(upVec);
+    camera.lookAt(target);
+
+    
+    camera.updateMatrixWorld(true);
+
+    const helper = new THREE.CameraHelper(camera);
+    helper.material.color.set(0x06fff0); 
+    scene.add(helper);
+  });
+}
+
+
+
+
+  function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+animate();
+
+document.body.appendChild(renderer.domElement);
+
+
+
+
+
+</script>

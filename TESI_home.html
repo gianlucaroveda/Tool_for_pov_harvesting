@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizzatore Mesh 3D</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/loaders/PLYLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/TrackballControls.js"></script>
+    <link rel="stylesheet" href="TESI_styles1.css">
+</head>
+<body>
+
+
+     <!-- Pop up comandi -->
+
+    
+
+    <div id="reminder">
+        <div id="carousel">
+            <span><strong>Tasto sinistro:</strong> Rotazione</span>
+            <span><strong>Tasto destro:</strong> Spostamento</span>
+            <span><strong>Rotella:</strong> Zoom</span>
+            <span><strong>Doppio click:</strong> Reset della camera</span>
+        </div>
+    </div>
+    
+
+     <!-- aggiungi mesh -->
+     <div id="message"> Clicca un oggetto sulla destra per aggiungerlo alla scena </div>
+
+     <!-- sidebar -->
+     <div class="sidebar open" id="sidebar">
+        <div class="question-container">
+            <div class="question" id="question">Seleziona una domanda</div>
+            <div class="options" id="options"></div>
+        </div>
+    
+        <div id="navigation">
+            <button id="nextBtn" onclick="nextQuestion()" >Avanti</button>
+            <button id="terminaBtn" onclick="finishQuestionnaire()" style="display: none;">Termina Questionario</button>
+        </div>
+        
+    </div>
+
+        
+    
+     
+    <script>
+
+        let circles=false;//if true show cicle of the axes
+        let memory=true;//if true store value of last position of a mesh and restore when u call back on the scene
+        let reset_camera = true; //false if u use same trackball for every mesh
+
+        let meshMemoryData = [];// Array to save mesh and POV info when reload in the scene
+
+        let shownMeshes = new Set(); // Tiene traccia delle mesh già viste
+        let currentMeshUrl = "";//easter egg
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x505050);
+        document.body.style.backgroundColor = "#000000";
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                
+        const container = document.createElement('div');
+        container.id = 'three-container'; 
+        document.body.appendChild(container);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+        
+
+        function updateRendererSize() {
+
+            let width = window.innerWidth;
+            let height = window.innerHeight;
+        
+             width *= 0.78; 
+        
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+           
+        }
+        window.addEventListener('resize', updateRendererSize);
+
+
+
+
+updateRendererSize();
+
+
+        const light = new THREE.AmbientLight(0xffffff, 2);
+        scene.add(light);
+
+        const loader = new THREE.GLTFLoader();
+        let currentMesh = null;
+
+function updateMessageVisibility() {
+    message.style.display = currentMesh ? "none" : "block";
+}
+
+updateMessageVisibility();
+
+function fitMeshToView(mesh) {
+    const box = new THREE.Box3().setFromObject(mesh);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+
+  
+    mesh.position.sub(center);
+
+   
+    const maxSize = Math.max(size.x, size.y, size.z);
+    if (maxSize > 0) {
+        const scaleFactor = 2 / maxSize; 
+        mesh.scale.set(scaleFactor, scaleFactor, scaleFactor);
+    }
+
+    
+    camera.position.set(0, size.y, size.z * 2.5);
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+}
+
+//reset camera
+function resetCamera() {
+    camera.position.set(0, 0, 2);
+    camera.up.set(0, 1, 0); 
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
+    controls.target.set(0, 0, 0);
+    controls.update();
+        
+    if (currentMesh) {
+        currentMesh.rotation.set(0, 0, 0); 
+        currentMesh.updateMatrixWorld(true); 
+    }
+}
+renderer.domElement.addEventListener("dblclick", resetCamera);
+let usingOrbitControls = true;
+let controls;
+
+function initControls() {
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = false;
+        
+        controls.enableZoom = true;
+        controls.enableRotate = true;
+        controls.enablePan = true;
+        controls.rotateSpeed = 0.5; 
+        usingOrbitControls = true;
+}
+
+function setOrbitControls() {
+    if (!(controls instanceof THREE.OrbitControls)) {
+        controls.dispose();
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = false;
+        
+        controls.enableZoom = true;
+        controls.enableRotate = true;
+        controls.enablePan = true;
+        controls.rotateSpeed = 0.5; 
+        usingOrbitControls = true;
+    }
+}
+
+function setTrackballControls() {
+    if (!(controls instanceof THREE.TrackballControls)) {
+        controls.dispose();
+        controls = new THREE.TrackballControls(camera, renderer.domElement);
+        controls.rotateSpeed = 3.0;
+        controls.zoomSpeed = 10;
+        controls.panSpeed = 2;
+        controls.dynamicDampingFactor = 0.7; 
+        usingOrbitControls = false;
+    }
+}
+
+let currentMeshName = null; // Variabile per il nome della mesh attualmente visibile
+//MEMORY
+function getCurrentPOV() {
+    
+    return {
+        position: {
+            x: camera.position.x,
+            y: camera.position.y,
+            z: camera.position.z
+        },
+        target: controls.target.clone(),
+        up: camera.up.clone()
+    };
+}
+// Funzione per ripristinare POV
+function setPOV(pov) {
+    camera.position.set(pov.position.x, pov.position.y, pov.position.z);
+    controls.target.copy(pov.target);
+    camera.up.copy(pov.up);
+    controls.update();
+}
+
+let isBlurred = true;
+//salva dati foto
+function Savedata(){
+    sendCurrentPOVToServer()
+}
+
+let Deactivate = false;
+
+function showInteractionPrompt() {
+    
+    const container = document.getElementById('three-container'); 
+    container.classList.add('blurred');
+    isBlurred = true;
+    
+    const prompt = document.createElement('div');
+    prompt.id = 'interaction-prompt';
+
+    const lang = sessionStorage.getItem("language") || "en";
+    prompt.textContent = texts[lang].interactionPrompt;
+
+   
+
+    document.body.appendChild(prompt);
+
+    // Rimuove il mess sfoca
+    function removePromptOnInteraction() {
+        container.classList.remove('blurred');
+        prompt.remove();
+        isBlurred = false;
+        container.removeEventListener('pointerdown', removePromptOnInteraction);
+    }
+
+    container.addEventListener('pointerdown', removePromptOnInteraction);
+}
+
+
+
+
+
+function loadMeshWithOrbitControls(url, name , light = true,value = 1.5,rinf =0.4,lig_inte = 0.7) {
+    
+    currentMeshUrl = url;
+   
+    scene.children = scene.children.filter(obj => {
+        if (obj.isLight) {
+            scene.remove(obj);
+            return false;
+        }
+        return true;
+    });
+    
+    if (light) {
+        const lights = [
+            new THREE.DirectionalLight(0xfffffc,lig_inte), 
+            new THREE.DirectionalLight(0xfffffc,lig_inte), 
+            new THREE.DirectionalLight(0xfffffc,lig_inte), 
+            new THREE.DirectionalLight(0xfffffc,lig_inte), 
+            new THREE.DirectionalLight(0xfffffc,lig_inte), 
+            new THREE.DirectionalLight(0xfffffc,lig_inte), 
+           
+        ];
+
+        const pos_luce = 12;
+      
+
+        lights[0].position.set(pos_luce, 0, 0);   
+        lights[1].position.set(-pos_luce, 0, 0);  
+        lights[2].position.set(0, pos_luce, 0);   
+        lights[3].position.set(0, -pos_luce, 0);  
+        lights[4].position.set(0, 0, pos_luce);   
+        lights[5].position.set(0, 0, -pos_luce);  
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, rinf); // Luce ambientale base
+        scene.add(ambientLight);
+
+        lights.forEach(light => {
+            light.lookAt(0, 0, 0);
+            scene.add(light);
+        });
+    } else {
+        const ambientLight = new THREE.AmbientLight(0xffffff, value); // Luce ambientale base
+        scene.add(ambientLight);
+    }
+    
+   
+    if (!shownMeshes.has(name)) {
+    showInteractionPrompt();
+    shownMeshes.add(name);
+}
+
+
+    if (memory) {
+        if (currentMesh && currentMeshName) {
+            // Salva il POV e il nome della mesh corrente prima di rimuoverla
+            const pov = getCurrentPOV();
+            sendCurrentPOVToServer();
+
+            const existingIndex = meshMemoryData.findIndex(item => item.name === currentMeshName);
+            if (existingIndex !== -1) {
+                // Sovrascrive i dati se già presenti
+                meshMemoryData[existingIndex].pov = pov;
+            } else {
+                // Aggiunge nuovi dati
+                meshMemoryData.push({
+                    name: currentMeshName,
+                    pov: pov
+                });
+            }
+
+            scene.remove(currentMesh);
+            currentMesh = null;
+            currentMeshName = null;
+        }
+        if (reset_camera) {
+            resetCamera();
+        }
+        setOrbitControls();
+        loader.load(url, function (gltf) {
+            currentMesh = gltf.scene;
+            currentMeshName = name;
+            updateMessageVisibility();
+            normalizeMesh(currentMesh, scene);
+
+
+            const saved = meshMemoryData.find(item => item.name === name);
+            if (saved) {
+                setPOV(saved.pov);
+            } else {
+                // Valori fissi se non ci sono dati salvati
+                camera.position.set(0, 0, 2);
+                controls.target.set(0, 0, 0);
+                camera.up.set(0, 1, 0);
+                controls.update();
+            }
+        }, undefined, function (error) {
+            console.error('Errore nel caricamento della mesh:', error);
+        });
+
+    } else {
+        //  memory === false
+        if (currentMesh) {
+            scene.remove(currentMesh);
+            currentMesh = null;
+            currentMeshName = null;
+        }
+
+        loader.load(url, function (gltf) {
+            currentMesh = gltf.scene;
+            currentMeshName = name;
+            updateMessageVisibility();
+            normalizeMesh(currentMesh, scene);
+
+            if (reset_camera) {
+                resetCamera();
+            }
+        }, undefined, function (error) {
+            console.error('Errore nel caricamento della mesh:', error);
+        });
+    }
+}
+
+
+function loadMeshWithTrackballControls(url, name , light = true,value = 1.5,rinf =0.4,lig_inte = 0.7) {
+    
+    currentMeshUrl = url;
+    setTrackballControls()
+
+    // Rimuove luci 
+    scene.children = scene.children.filter(obj => {
+        if (obj.isLight) {
+            scene.remove(obj);
+            return false;
+        }
+        return true;
+    });
+
+    if (light) {
+        const lights = [
+            new THREE.DirectionalLight(0xfffffc, lig_inte), 
+            new THREE.DirectionalLight(0xfffffc, lig_inte), 
+            new THREE.DirectionalLight(0xfffffc, lig_inte), 
+            new THREE.DirectionalLight(0xfffffc, lig_inte), 
+            new THREE.DirectionalLight(0xfffffc, lig_inte), 
+            new THREE.DirectionalLight(0xfffffc, lig_inte), 
+           
+        ];
+
+        const pos_luce = 12;
+      
+
+        lights[0].position.set(pos_luce, 0, 0);   
+        lights[1].position.set(-pos_luce, 0, 0);  
+        lights[2].position.set(0, pos_luce, 0);   
+        lights[3].position.set(0, -pos_luce, 0);  
+        lights[4].position.set(0, 0, pos_luce);   
+        lights[5].position.set(0, 0, -pos_luce);  
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, rinf); // Luce ambientale base
+        scene.add(ambientLight);
+
+        lights.forEach(light => {
+            light.lookAt(0, 0, 0);
+            scene.add(light);
+        });
+    } else {
+        const ambientLight = new THREE.AmbientLight(0xffffff, value); // Luce ambientale base
+        scene.add(ambientLight);
+    }
+
+
+
+    if (!shownMeshes.has(name)) {
+    showInteractionPrompt();
+    shownMeshes.add(name);
+}
+
+
+    if (memory) {
+        if (currentMesh && currentMeshName) {
+            // Salva il POV e il nome della mesh corrente prima di rimuoverla
+            const pov = getCurrentPOV();
+            sendCurrentPOVToServer();
+
+            const existingIndex = meshMemoryData.findIndex(item => item.name === currentMeshName);
+            if (existingIndex !== -1) {
+                meshMemoryData[existingIndex].pov = pov;
+            } else {
+                meshMemoryData.push({
+                    name: currentMeshName,
+                    pov: pov
+                });
+            }
+
+            scene.remove(currentMesh);
+            currentMesh = null;
+            currentMeshName = null;
+        }
+        if (reset_camera) {
+            resetCamera();
+        }
+        loader.load(url, function (gltf) {
+            currentMesh = gltf.scene;
+            currentMeshName = name;
+            updateMessageVisibility();
+            normalizeMesh(currentMesh, scene);
+            const saved = meshMemoryData.find(item => item.name === name);
+            if (saved) {
+                setPOV(saved.pov);
+            } else {
+                camera.position.set(0, 0, 2);
+                controls.target.set(0, 0, 0);
+                camera.up.set(0, 1, 0);
+                controls.update();
+            }
+        }, undefined, function (error) {
+            console.error('Errore nel caricamento della mesh:', error);
+        });
+
+    } else {
+        if (currentMesh) {
+            scene.remove(currentMesh);
+            currentMesh = null;
+            currentMeshName = null;
+        }
+
+        loader.load(url, function (gltf) {
+            currentMesh = gltf.scene;
+            currentMeshName = name;
+            updateMessageVisibility();
+            normalizeMesh(currentMesh, scene);
+
+            if (reset_camera) {
+                resetCamera();
+            }
+        }, undefined, function (error) {
+            console.error('Errore nel caricamento della mesh:', error);
+        });
+    }
+}
+
+
+let originalBoundingSphereCenter;
+let originalBoundingSphereRadius;
+
+function normalizeMesh(inputMesh, scene, raggio= 1) {
+
+    const boundingBox = new THREE.Box3().setFromObject(inputMesh);
+    const boundingSphere = boundingBox.getBoundingSphere(new THREE.Sphere());
+
+    originalBoundingSphereCenter = boundingSphere.center.clone();
+    originalBoundingSphereRadius = boundingSphere.radius;
+
+    if (typeof currentMeshName !== "undefined") {
+        sendMeshInfoToServer(currentMeshName, originalBoundingSphereCenter, originalBoundingSphereRadius, raggio,0,0,0);
+    } else {
+        console.warn("Nome della mesh non definito: impossibile inviare le info.");
+    }
+
+    const scaleFactor = raggio / originalBoundingSphereRadius;
+    const scaleMatrix = new THREE.Matrix4().makeScale(scaleFactor, scaleFactor, scaleFactor);
+
+
+    const translationVector = originalBoundingSphereCenter.clone().negate();
+    const translationMatrix = new THREE.Matrix4().makeTranslation(
+        translationVector.x,
+        translationVector.y,
+        translationVector.z
+    );
+
+    inputMesh.applyMatrix4(translationMatrix);
+    inputMesh.applyMatrix4(scaleMatrix);
+
+    scene.add(inputMesh);
+}
+
+
+initControls();
+
+
+const texts = {
+    it: {
+        terminaBtn: "Termina",
+        carousel:"<span><strong>Tasto sinistro:</strong> Rotazione</span><span><strong>Tasto destro:</strong> Spostamento</span><span><strong>Rotella:</strong> Zoom</span><span><strong>Doppio click:</strong> Reset della camera</span>",
+        message:"<p>Clicca un oggetto sulla destra per aggiungerlo alla scena<p>",
+        interactionPrompt: "Ruota o interagisci con l’oggetto"
+    },
+    en: {
+        terminaBtn: "Complete",
+        carousel: "<span><strong>Left click:</strong> Rotate</span><span><strong>Right click:</strong>Move</span><span><strong>Scroll wheel:</strong> Zoom</span><span><strong>Double click:</strong> Reset camera</span>",
+        message:"<p>Click an object on the right to add it to the scene<p>",
+        interactionPrompt: "Rotate or interact with the object"
+    }
+};
+
+
+function applyTranslation(lang) {
+
+
+    document.getElementById("terminaBtn").textContent = texts[lang].terminaBtn;
+    document.getElementById("carousel").innerHTML = texts[lang].carousel;
+    document.getElementById("message").innerHTML = texts[lang].message;
+
+}
+
+const savedLanguage = sessionStorage.getItem("language") || "en";
+applyTranslation(savedLanguage);
+
+let currentStep = 0;
+
+
+
+function createReferenceCircles() {
+    const circleRadius = 1; 
+    const circleSegments = 64; 
+    const colors = [0xff0000, 0x00ff00, 0xff00ff]; 
+
+    const axes = [
+        { axis: 'x', color: colors[0] }, 
+        { axis: 'y', color: colors[1] }, 
+        { axis: 'z', color: colors[2] }  
+    ];
+
+    axes.forEach(({ axis, color }) => {
+        const geometry = new THREE.BufferGeometry();
+        const points = [];
+
+        for (let i = 0; i <= circleSegments; i++) {
+            const angle = (i / circleSegments) * Math.PI * 2;
+            let x = 0, y = 0, z = 0;
+
+            if (axis === 'x') {
+                y = circleRadius * Math.cos(angle);
+                z = circleRadius * Math.sin(angle);
+            } else if (axis === 'y') {
+                x = circleRadius * Math.cos(angle);
+                z = circleRadius * Math.sin(angle);
+            } else if (axis === 'z') {
+                x = circleRadius * Math.cos(angle);
+                y = circleRadius * Math.sin(angle);
+            }
+
+            points.push(new THREE.Vector3(x, y, z));
+        }
+
+        geometry.setFromPoints(points);
+        const material = new THREE.LineBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.7 
+        });
+
+        const circle = new THREE.Line(geometry, material);
+        scene.add(circle);
+    });
+}
+if(circles){
+    createReferenceCircles();
+}
+
+
+document.addEventListener('keydown', async function (event) {
+  if (event.ctrlKey && event.key === 'v') {
+    try {
+      const text = await navigator.clipboard.readText();
+      handlePasteData(text);
+    } catch (err) {
+      console.error('Errore nella lettura degli appunti:', err);
+    }
+  }
+});
+
+function handlePasteData(text) {
+  const parts = text.split('\t');
+  if (parts.length < 12) {
+    console.warn('Formato non valido.');
+    return;
+  }
+
+  const [, , pov_x, pov_y, pov_z,
+    dir_x, dir_y, dir_z,
+    up_x, up_y, up_z, fov] = parts;
+
+  
+  const meshUrl = currentMeshUrl || "modelli/default_model.glb";
+
+  const params = new URLSearchParams({
+    mesh: encodeURIComponent(meshUrl),
+    name: currentMeshName,
+    pov_x, pov_y, pov_z,
+    dir_x, dir_y, dir_z,
+    up_x, up_y, up_z,
+    fov
+  });
+
+  window.open(`TESI_viewer.html?${params.toString()}`, '_blank');
+}
+
+
+function hideCurrentMesh() {
+    scene.remove(currentMesh);
+    
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const sessionId = sessionStorage.getItem("sessionId");
+
+    if (!sessionId) {
+        console.error("Errore: nessun ID di sessione trovato.");
+    } else {
+        console.log("ID Sessione:", sessionId);
+        
+    }
+});
+
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    if (controls) controls.update();
+    renderer.render(scene, camera);
+}
+
+animate();
+
+
+    </script>
+
+    <script src="povDB.js"></script>
+    <script src="TESI_question.js"></script>
+</body>
+</html>
