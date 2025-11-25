@@ -1,2 +1,0 @@
-select * from pov_data 
-/* DELETE FROM pov_data; */

@@ -87,7 +87,7 @@
        h2 {
             color: #009dbd;
             font-size: 1.5em;
-            min-height: 1.5em; /* Stabilizza altezza */
+            min-height: 1.5em; 
         }
 
         h3 {
@@ -97,11 +97,11 @@
         }
 
         #description {
-            min-height: 6em; /* Spazio sufficiente per traduzioni lunghe */
+            min-height: 6em; 
         }
 
 
-    /*Interruttore lingua*/
+  
     .language-selector { 
         display: flex;  
         flex-direction: column;

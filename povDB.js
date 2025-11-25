@@ -1,4 +1,3 @@
-// Variabili globali
 let lastPosition = { x: 0, y: 0, z: 0 };
 let lastDirection = { x: 0, y: 0, z: 0 };
 let lastUpVector = { x: 0, y: 0, z: 0 };
@@ -38,11 +37,11 @@ function sendPOVData() {
 
     if (isBlurred) {
         console.warn("Impossibile inviare POV: Sfuocato.");
-        return; // Se la finestra è sfocata, esco senza fare nulla
+        return; 
     }
     if (Deactivate) {
         console.warn("Impossibile inviare POV: disabilitato.");
-        return; // Se la finestra è sfocata, esco senza fare nulla
+        return; 
     }
 
     if (!sessionId || !currentMeshName) {
@@ -50,14 +49,12 @@ function sendPOVData() {
         return;
     }
 
-    // === POSIZIONE CAMERA ===
+  
     const povPosition = camera.position.clone();
 
-    // === DIREZIONE CAMERA ===
     const viewDirection = new THREE.Vector3();
     camera.getWorldDirection(viewDirection);
 
-    // === UP VECTOR ===
     const upVector = camera.up.clone();
 
     const currentFOV = camera.fov;

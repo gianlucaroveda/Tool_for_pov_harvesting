@@ -14,10 +14,6 @@
 <body>
 
 
-     <!-- Pop up comandi -->
-
-    
-
     <div id="reminder">
         <div id="carousel">
             <span><strong>Tasto sinistro:</strong> Rotazione</span>
@@ -28,10 +24,8 @@
     </div>
     
 
-     <!-- aggiungi mesh -->
      <div id="message"> Clicca un oggetto sulla destra per aggiungerlo alla scena </div>
 
-     <!-- sidebar -->
      <div class="sidebar open" id="sidebar">
         <div class="question-container">
             <div class="question" id="question">Seleziona una domanda</div>
@@ -50,14 +44,14 @@
      
     <script>
 
-        let circles=false;//if true show cicle of the axes
-        let memory=true;//if true store value of last position of a mesh and restore when u call back on the scene
-        let reset_camera = true; //false if u use same trackball for every mesh
+        let circles=false;
+        let memory=true;
+        let reset_camera = true;
 
-        let meshMemoryData = [];// Array to save mesh and POV info when reload in the scene
+        let meshMemoryData = [];
 
-        let shownMeshes = new Set(); // Tiene traccia delle mesh già viste
-        let currentMeshUrl = "";//easter egg
+        let shownMeshes = new Set(); 
+        let currentMeshUrl = "";
 
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0x505050);
@@ -180,8 +174,8 @@ function setTrackballControls() {
     }
 }
 
-let currentMeshName = null; // Variabile per il nome della mesh attualmente visibile
-//MEMORY
+let currentMeshName = null; 
+
 function getCurrentPOV() {
     
     return {
@@ -194,7 +188,7 @@ function getCurrentPOV() {
         up: camera.up.clone()
     };
 }
-// Funzione per ripristinare POV
+
 function setPOV(pov) {
     camera.position.set(pov.position.x, pov.position.y, pov.position.z);
     controls.target.copy(pov.target);
@@ -203,7 +197,7 @@ function setPOV(pov) {
 }
 
 let isBlurred = true;
-//salva dati foto
+
 function Savedata(){
     sendCurrentPOVToServer()
 }
@@ -226,7 +220,7 @@ function showInteractionPrompt() {
 
     document.body.appendChild(prompt);
 
-    // Rimuove il mess sfoca
+
     function removePromptOnInteraction() {
         container.classList.remove('blurred');
         prompt.remove();
@@ -274,7 +268,7 @@ function loadMeshWithOrbitControls(url, name , light = true,value = 1.5,rinf =0.
         lights[4].position.set(0, 0, pos_luce);   
         lights[5].position.set(0, 0, -pos_luce);  
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, rinf); // Luce ambientale base
+        const ambientLight = new THREE.AmbientLight(0xffffff, rinf); 
         scene.add(ambientLight);
 
         lights.forEach(light => {
@@ -282,7 +276,7 @@ function loadMeshWithOrbitControls(url, name , light = true,value = 1.5,rinf =0.
             scene.add(light);
         });
     } else {
-        const ambientLight = new THREE.AmbientLight(0xffffff, value); // Luce ambientale base
+        const ambientLight = new THREE.AmbientLight(0xffffff, value); 
         scene.add(ambientLight);
     }
     
@@ -295,16 +289,16 @@ function loadMeshWithOrbitControls(url, name , light = true,value = 1.5,rinf =0.
 
     if (memory) {
         if (currentMesh && currentMeshName) {
-            // Salva il POV e il nome della mesh corrente prima di rimuoverla
+          
             const pov = getCurrentPOV();
             sendCurrentPOVToServer();
 
             const existingIndex = meshMemoryData.findIndex(item => item.name === currentMeshName);
             if (existingIndex !== -1) {
-                // Sovrascrive i dati se già presenti
+               
                 meshMemoryData[existingIndex].pov = pov;
             } else {
-                // Aggiunge nuovi dati
+               
                 meshMemoryData.push({
                     name: currentMeshName,
                     pov: pov
@@ -330,7 +324,7 @@ function loadMeshWithOrbitControls(url, name , light = true,value = 1.5,rinf =0.
             if (saved) {
                 setPOV(saved.pov);
             } else {
-                // Valori fissi se non ci sono dati salvati
+                
                 camera.position.set(0, 0, 2);
                 controls.target.set(0, 0, 0);
                 camera.up.set(0, 1, 0);
@@ -341,7 +335,7 @@ function loadMeshWithOrbitControls(url, name , light = true,value = 1.5,rinf =0.
         });
 
     } else {
-        //  memory === false
+        
         if (currentMesh) {
             scene.remove(currentMesh);
             currentMesh = null;

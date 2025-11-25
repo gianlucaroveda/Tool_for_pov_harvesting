@@ -3,7 +3,7 @@ let optionsDiv = document.getElementById('options');
 let prevBtn = document.getElementById('prevBtn');
 let nextBtn = document.getElementById('nextBtn');
 let terminaBtn = document.getElementById('terminaBtn');
-//DOMANDE
+
 const questions = [
     { title: "DOMANDA 1", text: "Quale di questi manufatti è il più antico?" },
     { title: "DOMANDA 2", text: "Quale struttura non appartiene all'epoca greca?" },
@@ -262,22 +262,20 @@ function loadQuestion(index) {
         
         if (question.mode === 2) {
             nextBtn.style.display = "none";
-            Deactivate = true //disattiva il monitoring della camera
-            // Crea il bottone "Scatta foto" con lo stesso stile dei radio button
+            Deactivate = true 
             const container = document.createElement('div');
             container.classList.add("option-container");
             container.classList.add("photo-option-container");
         
-            // Crea l'etichetta del pulsante
             const textLabel = document.createElement('span');
             textLabel.classList.add("option-text");
             textLabel.textContent = language === "en" ? "Take Photo" : "Scatta Foto";
         
-            // Crea un contenitore vuoto per coerenza con le altre opzioni
+          
             const buttonContainer = document.createElement('div');
             buttonContainer.classList.add("button-container");
         
-            // L'intero container sarà cliccabile
+            
             container.addEventListener('click', () => {
                 if (isBlurred) {
                     const alertMessage = language === "en"
@@ -288,12 +286,12 @@ function loadQuestion(index) {
                 }
                 nextBtn.style.display = "inline-block";
                 Deactivate = false;
-                selectedAnswers[currentQuestionIndex] = 1; // save that u respond to the question.
+                selectedAnswers[currentQuestionIndex] = 1; 
                 Savedata();
                 nextQuestionPicture();
             });
         
-            // Appendi gli elementi come per le opzioni classiche
+           
             container.appendChild(textLabel);
             container.appendChild(buttonContainer);
             optionsDiv.appendChild(container);
@@ -426,11 +424,11 @@ function nextQuestion() {
 
 
 
-// Carica la prima domanda all'avvio
+
 loadQuestion(0);
 
 function finishQuestionnaire() {
-    // Controlla se ogni domanda ha una risposta
+
     let allAnswered = selectedAnswers.every(answer => answer !== null);
     const language = sessionStorage.getItem("language") || "en";
     if(language =="en"){
@@ -451,7 +449,7 @@ function finishQuestionnaire() {
         }
     }
 }
-// Carica la prima domanda all'avvio
+
 loadQuestion(0);
 
 

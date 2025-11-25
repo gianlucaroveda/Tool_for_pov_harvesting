@@ -119,16 +119,13 @@ button:hover {
 }
 
 
-/*SIDEBAR*/
-
-
 .sidebar {
     width: 20%;
     height: 100vh;
     background-color: #131313;
     color: white;
     position: fixed;
-    right: 0; /* Sidebar aperta all'inizio */
+    right: 0; 
     top: 0;
     transition: right 0.3s ease;
     padding: 20px;    
@@ -147,8 +144,8 @@ h1 {
     text-align: center; 
     font-size: 5em;
     height: 13%;   
-    border-top: 2px solid #8b8b8b; /* Bordo solo sopra */
-    border-bottom: 2px solid #8b8b8b; /* Bordo solo sotto */ 
+    border-top: 2px solid #8b8b8b; 
+    border-bottom: 2px solid #8b8b8b; 
     margin-bottom: 10%;
     
 }
@@ -165,21 +162,21 @@ h1 {
 }
 #navigation {
     position: absolute;
-    bottom:10%; /* Distanza dal fondo della sidebar */
+    bottom:10%; 
     right: 4%;
     width: 80%;
     display: flex;
-    justify-content: space-between; /* Puoi anche usare `justify-content: center` per centrare i bottoni */
+    justify-content: space-between; 
     padding: 10px;
 }
 
 #navigation button {
-    font-size: 100%; /* Aumenta la dimensione del font */
+    font-size: 100%;
     background-color: #0086ab;
-    border: none; /* Rimuove il bordo, se desiderato */
-    cursor: pointer; /* Cambia il cursore quando si passa sopra il pulsante */
-    border-radius: 5px; /* Angoli arrotondati */
-    transition: background-color 0.3s ease; /* Aggiungi una transizione per l'effetto hover */
+    border: none; 
+    cursor: pointer; 
+    border-radius: 5px; 
+    transition: background-color 0.3s ease; 
 }
 
 
@@ -204,11 +201,11 @@ h1 {
 
 h1 {
     
-    font-size: 2vw; /* 5% della larghezza dello schermo */
+    font-size: 2vw;
 }
 
 p {
-    font-size: 2.4vh; /* 2% dell'altezza dello schermo */
+    font-size: 2.4vh; 
 }
 
 
@@ -216,45 +213,42 @@ p {
     font-size: 2.5vw;
     color: #4affe1;
     text-align: center;
-    margin-top: 14%; /* Imposta lo spazio sotto il paragrafo */
+    margin-top: 14%; 
     font-size: 3vw;
 }
 
 .question-text {
-    margin-bottom: 30%; /* Imposta lo spazio sotto il paragrafo */
+    margin-bottom: 30%;
     height: 15%;
-    margin-bottom: 5%; /* Ridotto per evitare problemi su schermi piccoli */
-    min-height: 30px; /* Altezza minima */
-    max-height: 15vh; /* Altezza massima in base alla viewport */
+    margin-bottom: 5%; 
+    min-height: 30px; 
+    max-height: 15vh; 
     overflow: hidden;
     text-overflow: ellipsis;
     display: block;
-    word-wrap: break-word; /* Permette la rottura delle parole */
-    padding: 10px; /* Spazio interno per leggibilità */
+    word-wrap: break-word; 
+    padding: 10px; 
     font-size: 1.4vw;
 }
 #question {
-    margin-top: 10%; /* Imposta lo spazio sotto il paragrafo */
+    margin-top: 10%; 
     font-size: 3vw;
     
 }
 
  
-/* Stile per il contenitore delle opzioni */
+
 .option-container {
     display: flex;
     align-items: center;
     margin-bottom: 4%;
     margin-top: 3%;
     width: 110%;
-    justify-content: center; /* Centra gli elementi */
+    justify-content: center; 
 }
 
 
 
-
-
-/* Stili per le opzioni */
 .option-container {
     display: flex;
     justify-content: space-between;
@@ -269,25 +263,25 @@ p {
 
 }
 
-/* Effetto hover */
+
 .option-container:hover {
     transform: scale(1.05);
 }
 
-/* Effetto hover */
+
 .option-container:hover {
     transform: scale(1.05);
     box-shadow: 0px 0px 10px rgba(0, 234, 255, 0.5);
 }
 
-/* Stato selezionato */
+
 .option-container.selected {
     background-color: #505050;
     border-color: #000000;
     box-shadow: 0px 0px 10px rgba(0, 234, 255, 0.5);
 }
 
-/* Testo dell'opzione */
+
 .option-text {
     flex: 1;
     font-size: 1.3vw;
@@ -322,7 +316,7 @@ p {
 .radio-option::before {
     
     font-size: 1vw;
-    color: rgba(61, 61, 61, 0.405); /* Semitrasparente */
+    color: rgba(61, 61, 61, 0.405); 
     position: absolute;
     top: 50%;
     left: 50%;
@@ -362,10 +356,10 @@ p {
     color: #ffffff;
     border-radius: 10px;
     z-index: 10;
-    pointer-events: none; /* Impedisce di bloccare i click sulla scena */
+    pointer-events: none; 
 }
 
-/* POPUP TUTORIAL */
+
   #popupOverlay {
       position: fixed;
       top: 0; left: 0;
